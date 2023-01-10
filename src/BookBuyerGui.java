@@ -23,8 +23,6 @@ class BookBuyerGui extends JFrame {
 		titleField = new JTextField(15);
 		p.add(titleField);
 
-		p.add(new JLabel("Budget: " + a.Budget));
-
 		getContentPane().add(p, BorderLayout.CENTER);
 		
 		JButton addButton = new JButton("Search");
