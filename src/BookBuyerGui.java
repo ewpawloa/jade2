@@ -17,10 +17,14 @@ class BookBuyerGui extends JFrame {
 		myAgent = a;
 		
 		JPanel p = new JPanel();
-		p.setLayout(new GridLayout(2, 2));
+		p.setLayout(new GridLayout(3, 3));
+
 		p.add(new JLabel("Title:"));
 		titleField = new JTextField(15);
 		p.add(titleField);
+
+		p.add(new JLabel("Budget: " + a.Budget));
+
 		getContentPane().add(p, BorderLayout.CENTER);
 		
 		JButton addButton = new JButton("Search");

@@ -13,6 +13,16 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 public class BookBuyerAgent extends Agent {
   private BookBuyerGui myGui;
   private String targetBookTitle;
+
+	public int getBudget() {
+		return Budget;
+	}
+
+	public void setBudget(int budget) {
+		Budget = budget;
+	}
+
+	public int Budget = 100;
   
   //list of found sellers
   private AID[] sellerAgents;
@@ -27,6 +37,7 @@ public class BookBuyerAgent extends Agent {
 		int interval = 20000;
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) interval = Integer.parseInt(args[0].toString());
+
 	  addBehaviour(new TickerBehaviour(this, interval)
 	  {
 		  protected void onTick()
@@ -43,6 +54,7 @@ public class BookBuyerAgent extends Agent {
 				  try
 				  {
 					  DFAgentDescription[] result = DFService.search(myAgent, template);
+
 					  System.out.println(getAID().getLocalName() + ": the following sellers have been found");
 					  sellerAgents = new AID[result.length];
 					  for (int i = 0; i < result.length; ++i)
@@ -128,7 +140,14 @@ public class BookBuyerAgent extends Agent {
 	      break;
 	    case 2:
 	      //best proposal consumption - purchase
-	      ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+			if(bestPrice > Budget){
+				System.out.println("Not enough money to buy this book");
+				System.out.println("Current budget: " + Budget + "Book price: " + bestPrice);
+				System.out.println(getAID().getLocalName() + ": waiting for the next purchase order.");
+				step = 4;
+				break;
+			}
+			ACLMessage order = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
           order.addReceiver(bestSeller);
 	      order.setContent(targetBookTitle);
 	      order.setConversationId("book-trade");
@@ -145,6 +164,9 @@ public class BookBuyerAgent extends Agent {
 	        if (reply.getPerformative() == ACLMessage.INFORM) {
 	          //purchase succeeded
 	          System.out.println(getAID().getLocalName() + ": " + targetBookTitle + " purchased for " + bestPrice + " from " + reply.getSender().getLocalName());
+
+			  Budget = Budget - bestPrice;
+				System.out.println("Current budget: " + Budget);
 		  System.out.println(getAID().getLocalName() + ": waiting for the next purchase order.");
 		  targetBookTitle = "";
 	          //myAgent.doDelete();
