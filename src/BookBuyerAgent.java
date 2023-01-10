@@ -96,6 +96,7 @@ public class BookBuyerAgent extends Agent {
 	  private AID bestSeller;
 	  private int bestPrice;
 	  private int repliesCnt = 0;
+	  private String BookId;
 	  private MessageTemplate mt;
 	  private int step = 0;
 	
@@ -126,6 +127,7 @@ public class BookBuyerAgent extends Agent {
 	            //the best proposal as for now
 	            bestPrice = price;
 	            bestSeller = reply.getSender();
+				BookId = reply.getOntology();
 	          }
 	        }
 	        repliesCnt++;
@@ -152,6 +154,7 @@ public class BookBuyerAgent extends Agent {
 	      order.setContent(targetBookTitle);
 	      order.setConversationId("book-trade");
 	      order.setReplyWith("order"+System.currentTimeMillis());
+		  order.setOntology(BookId);
 	      myAgent.send(order);
 	      mt = MessageTemplate.and(MessageTemplate.MatchConversationId("book-trade"),
 	                               MessageTemplate.MatchInReplyTo(order.getReplyWith()));

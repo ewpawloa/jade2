@@ -12,11 +12,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import java.util.*;
 
 public class BookSellerAgent extends Agent {
-  private Hashtable catalogue;
+  private ArrayList<Book> catalogue;
   private BookSellerGui myGui;
 
   protected void setup() {
-    catalogue = new Hashtable();
+    catalogue = new ArrayList<Book>();
     myGui = new BookSellerGui(this);
     myGui.display();
 
@@ -55,7 +55,7 @@ public class BookSellerAgent extends Agent {
   public void updateCatalogue(final String title, final int price, final int shipmentPrice) {
     addBehaviour(new OneShotBehaviour() {
       public void action() {
-		catalogue.put(title, new Integer(price + shipmentPrice));
+		catalogue.add(new Book(UUID.randomUUID(), title, price, shipmentPrice));
 		System.out.println(getAID().getLocalName() + ": " + title + " put into the catalogue. Price = " + price + " Shipment price = " + shipmentPrice);
       }
     } );
@@ -69,17 +69,26 @@ public class BookSellerAgent extends Agent {
 	    if (msg != null) {
 	      String title = msg.getContent();
 	      ACLMessage reply = msg.createReply();
-	      Integer price = (Integer) catalogue.get(title);
-	      if (price != null) {
-	        //title found in the catalogue, respond with its price as a proposal
-	        reply.setPerformative(ACLMessage.PROPOSE);
-	        reply.setContent(String.valueOf(price.intValue()));
-	      }
-	      else {
-	        //title not found in the catalogue
-	        reply.setPerformative(ACLMessage.REFUSE);
-	        reply.setContent("not-available");
-	      }
+
+		  System.out.println("Searching book in catalogue...");
+		  for(Book book : catalogue) {
+			  try{
+				  if(book.getTitle().equals(title)){
+					  reply.setPerformative(ACLMessage.PROPOSE);
+					  reply.setContent(String.valueOf(book.getPrice() + book.getShippingPrice()));
+					  var bookId = book.getID().toString();
+					  System.out.println(bookId);
+					  reply.setOntology(book.getID().toString());
+				  }
+				  else{
+					  reply.setPerformative(ACLMessage.REFUSE);
+					  reply.setContent("not-available");
+				  }
+			  }
+			  catch(Exception ex){
+				  System.out.println(ex.getMessage());
+			  }
+			}
 	      myAgent.send(reply);
 	    }
 	    else {
@@ -97,7 +106,17 @@ public class BookSellerAgent extends Agent {
 	    if (msg != null) {
 	      String title = msg.getContent();
 	      ACLMessage reply = msg.createReply();
-	      Integer price = (Integer) catalogue.remove(title);
+
+		  Integer price = null;
+
+		  var bookId = msg.getOntology();
+		  for(Book book : catalogue) {
+			  if(book.getID().toString().equals(bookId)){
+				  price = book.getPrice();
+				  catalogue.remove(book);
+			  }
+		  }
+
 	      if (price != null) {
 	        reply.setPerformative(ACLMessage.INFORM);
 	        System.out.println(getAID().getLocalName() + ": " + title + " sold to " + msg.getSender().getLocalName());
