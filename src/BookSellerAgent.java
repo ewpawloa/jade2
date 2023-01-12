@@ -12,11 +12,11 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import java.util.*;
 
 public class BookSellerAgent extends Agent {
-  private ArrayList<Book> catalogue;
+  private HashMap<String, Book> catalogue;
   private BookSellerGui myGui;
 
   protected void setup() {
-    catalogue = new ArrayList<Book>();
+    catalogue = new HashMap<>();
     myGui = new BookSellerGui(this);
     myGui.display();
 
@@ -55,7 +55,8 @@ public class BookSellerAgent extends Agent {
   public void updateCatalogue(final String title, final int price, final int shipmentPrice) {
     addBehaviour(new OneShotBehaviour() {
       public void action() {
-		catalogue.add(new Book(UUID.randomUUID(), title, price, shipmentPrice));
+		  var bookId = UUID.randomUUID().toString();
+		catalogue.put(bookId, new Book(bookId, title, price, shipmentPrice));
 		System.out.println(getAID().getLocalName() + ": " + title + " put into the catalogue. Price = " + price + " Shipment price = " + shipmentPrice);
       }
     } );
@@ -71,25 +72,29 @@ public class BookSellerAgent extends Agent {
 	      ACLMessage reply = msg.createReply();
 
 		  System.out.println("Searching book in catalogue...");
-		  for(Book book : catalogue) {
-			  try{
-				  if(book.getTitle().equals(title)){
-					  reply.setPerformative(ACLMessage.PROPOSE);
-					  reply.setContent(String.valueOf(book.getPrice() + book.getShippingPrice()));
-					  var bookId = book.getID().toString();
-					  System.out.println(bookId);
-					  reply.setOntology(book.getID().toString());
-				  }
-				  else{
-					  reply.setPerformative(ACLMessage.REFUSE);
-					  reply.setContent("not-available");
-				  }
+		  var searchedBooks = new ArrayList<Book>();
+		  var searchedBook = new Book(null, null, 0, 0);
+
+		  for(String key: catalogue.keySet()){
+			  var book = catalogue.get(key);
+			  if(book.getTitle().equals(title)){
+				  searchedBook = book;
+				  System.out.println("Following book has been found. Title: " + book.Title + " Price: " + book.getFullPrice()
+				  + " BookID: " + book.getID());
+				  break;
 			  }
-			  catch(Exception ex){
-				  System.out.println(ex.getMessage());
-			  }
-			}
-	      myAgent.send(reply);
+		  }
+
+		  if(searchedBook.getPrice() != 0){
+			  reply.setPerformative(ACLMessage.PROPOSE);
+			  reply.setContent(String.valueOf(searchedBook.getFullPrice()));
+			  reply.setOntology(searchedBook.getID());
+		  }
+		  else{
+			  reply.setPerformative(ACLMessage.REFUSE);
+			  reply.setContent("not-available");
+		  }
+		  myAgent.send(reply);
 	    }
 	    else {
 	      block();
@@ -110,10 +115,14 @@ public class BookSellerAgent extends Agent {
 		  Integer price = null;
 
 		  var bookId = msg.getOntology();
-		  for(Book book : catalogue) {
-			  if(book.getID().toString().equals(bookId)){
+		  for(String key: catalogue.keySet()) {
+			  var book = catalogue.get(key);
+			  if (book.getID().equals(bookId)) {
 				  price = book.getPrice();
-				  catalogue.remove(book);
+				  System.out.println("Following book has been removed from catalogue. Title: " + book.Title + " Price: " + book.getFullPrice()
+						  + " BookID: " + book.getID());
+				  catalogue.remove(bookId);
+				  break;
 			  }
 		  }
 

@@ -166,7 +166,8 @@ public class BookBuyerAgent extends Agent {
 	      if (reply != null) {
 	        if (reply.getPerformative() == ACLMessage.INFORM) {
 	          //purchase succeeded
-	          System.out.println(getAID().getLocalName() + ": " + targetBookTitle + " purchased for " + bestPrice + " from " + reply.getSender().getLocalName());
+	          System.out.println("BookID: " + BookId + " " + getAID().getLocalName() + ": " + targetBookTitle + " purchased for " + bestPrice
+					  + " from " + reply.getSender().getLocalName());
 
 			  Budget = Budget - bestPrice;
 				System.out.println("Current budget: " + Budget);
