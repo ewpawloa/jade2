@@ -126,7 +126,7 @@ public class BookSellerAgent extends Agent {
 			  }
 		  }
 
-	      if (price != null) {
+	      if (price != null || price != 0) {
 	        reply.setPerformative(ACLMessage.INFORM);
 	        System.out.println(getAID().getLocalName() + ": " + title + " sold to " + msg.getSender().getLocalName());
 	      }
